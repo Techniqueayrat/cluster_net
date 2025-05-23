@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+requests
+PySide6            # или PySide6 — по желанию
+qasync           # «мост» между asyncio и Qt-event-loop
+websockets       # резервно, но мы используем QtNetwork.QWebSocket
+paramiko
+pydantic
