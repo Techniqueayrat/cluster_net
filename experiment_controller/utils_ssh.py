@@ -1,5 +1,4 @@
 import paramiko
-import os
 import io
 import time
 from typing import Sequence
@@ -7,7 +6,6 @@ from typing import Sequence
 SSH_USER = "root"
 SSH_PASS = "0000"
 REMOTE_TMP = "/tmp/mpi_experiment"  # куда копировать hostfile/rankfile
-
 def _client(host: str, timeout=8) -> paramiko.SSHClient:
     cl = paramiko.SSHClient()
     cl.set_missing_host_key_policy(paramiko.AutoAddPolicy())

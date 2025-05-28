@@ -18,6 +18,8 @@ active_connections: list[WebSocket] = []
 
 class ExperimentRequest(BaseModel):
     topology: str
+    task_topology: str = "STAR"
+    strategy: str = "Simple"
 
 @app.on_event("startup")
 def startup_event():
@@ -41,31 +43,49 @@ async def start_experiment(req: ExperimentRequest):
     Клиент (GUI) вызывает этот метод, передавая название топологии (например, "torus").
     """
     topology = req.topology
+    task_topology = req.task_topology
+    strategy = req.strategy
     global experiment_counter
     exp_id = experiment_counter
     experiment_counter += 1
     # Сохраняем начальное состояние эксперимента
-    experiments[exp_id] = {"topology": topology, "status": "starting", "result": None}
+    experiments[exp_id] = {
+        "topology": topology,
+        "task_topology": task_topology,
+        "strategy": strategy,
+        "status": "starting",
+        "result": None,
+    }
     # Отправляем начальный статус по WebSocket всем подключенным клиентам
     for ws in active_connections:
-        await ws.send_text(f"Эксперимент {exp_id} запускается (топология: {topology})")
+        await ws.send_text(
+            f"Эксперимент {exp_id} запускается (кластер: {topology}, задача: {task_topology}, стратегия: {strategy})"
+        )
 
     # 3. Уведомляем GNS3 Manager о выбранной топологии через REST
     requests.post("http://localhost:8001/select_topology", json={"name": topology})
 
     # 4. Вызываем GNS3 VM Manager для создания виртуальной сети по выбранной топологии.
     # Передаём название топологии и токен авторизации для gns3server.
-    resp = requests.post("http://localhost:8002/start",
-                         json={"topology": topology, "token": GNS3_TOKEN})
+    resp = requests.post(
+        "http://localhost:8002/start",
+        json={"topology": topology, "token": GNS3_TOKEN},
+    )
     vm_result = resp.json()
     # будем работать по IP, которые вернул VM-manager
     hosts = [n.get("ip_address") for n in vm_result.get("nodes", [])]
     hosts = [h for h in hosts if h]   # отфильтровали None
     # 5. Запрашиваем у Placement Engine mapping rank→host
-    map_resp = requests.post(PLACEMENT_URL,
-                             json={"task_graph": {"processes": len(hosts)},
-                                   "nodes": hosts,
-                                   "strategy": "random"})
+    map_resp = requests.post(
+        PLACEMENT_URL,
+        json={
+            "task_graph": {"processes": len(hosts)},
+            "nodes": hosts,
+            "strategy": strategy,
+            "cluster_topology": topology,
+            "task_topology": task_topology,
+        },
+    )
     mapping = map_resp.json()
 
     # 6-A. Отправляем rank/host-files на все VM
@@ -116,7 +136,13 @@ def get_experiment_result(exp_id: int):
     exp = experiments.get(exp_id)
     if exp is None:
         return {"error": "Experiment not found"}
-    return {"topology": exp["topology"], "status": exp["status"], "result": exp["result"]}
+    return {
+        "topology": exp["topology"],
+        "task_topology": exp.get("task_topology"),
+        "strategy": exp.get("strategy"),
+        "status": exp["status"],
+        "result": exp["result"],
+    }
 
 @app.websocket("/ws")
 async def websocket_status(websocket: WebSocket):

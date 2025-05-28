@@ -2,65 +2,184 @@
   "nodes": [
     {
       "id": "N1",
-      "name": "Node1",
-      "type": "qemu",
-      "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
-      "ram": 512,
-      "x": 0,
-      "y": 0
+      "name": "Switch1",
+      "type": "ethernet_switch",
+      "image": "",
+      "x": -242,
+      "y": -184
     },
     {
       "id": "N2",
-      "name": "Node2",
-      "type": "qemu",
-      "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
-      "ram": 512,
-      "x": 200,
-      "y": 0
+      "name": "Switch2",
+      "type": "ethernet_switch",
+      "image": "",
+      "x": 63,
+      "y": -138
     },
     {
       "id": "N3",
-      "name": "Node3",
-      "type": "qemu",
-      "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
-      "ram": 512,
-      "x": 0,
-      "y": 200
+      "name": "Switch3",
+      "type": "ethernet_switch",
+      "image": "",
+      "x": -193,
+      "y": 100
     },
     {
       "id": "N4",
-      "name": "Node4",
+      "name": "Switch4",
+      "type": "ethernet_switch",
+      "image": "",
+      "x": 148,
+      "y": 125
+    },
+    {
+      "id": "N5",
+      "name": "tplarch3qcow-1",
       "type": "qemu",
       "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
       "ram": 512,
-      "x": 200,
-      "y": 200
+      "x": -229,
+      "y": -313
+    },
+    {
+      "id": "N6",
+      "name": "tplarch3qcow-2",
+      "type": "qemu",
+      "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
+      "ram": 512,
+      "x": -227,
+      "y": 304
+    },
+    {
+      "id": "N7",
+      "name": "tplarch3qcow-3",
+      "type": "qemu",
+      "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
+      "ram": 512,
+      "x": 122,
+      "y": -309
+    },
+    {
+      "id": "N8",
+      "name": "tplarch3qcow-4",
+      "type": "qemu",
+      "image": "/home/ayrat/GNS3/images/QEMU/arch3.qcow",
+      "ram": 512,
+      "x": 244,
+      "y": 283
     }
   ],
-
   "links": [
     {
       "endpoints": [
-        { "node": "N1", "adapter": 0, "port": 0 },
-        { "node": "N2", "adapter": 0, "port": 0 }
+        {
+          "node": "N1",
+          "adapter": 0,
+          "port": 0
+        },
+        {
+          "node": "N2",
+          "adapter": 0,
+          "port": 0
+        }
       ]
     },
     {
       "endpoints": [
-        { "node": "N1", "adapter": 0, "port": 1 },
-        { "node": "N3", "adapter": 0, "port": 0 }
+        {
+          "node": "N1",
+          "adapter": 0,
+          "port": 1
+        },
+        {
+          "node": "N3",
+          "adapter": 0,
+          "port": 1
+        }
       ]
     },
     {
       "endpoints": [
-        { "node": "N2", "adapter": 0, "port": 1 },
-        { "node": "N4", "adapter": 0, "port": 0 }
+        {
+          "node": "N2",
+          "adapter": 0,
+          "port": 1
+        },
+        {
+          "node": "N4",
+          "adapter": 0,
+          "port": 1
+        }
       ]
     },
     {
       "endpoints": [
-        { "node": "N3", "adapter": 0, "port": 1 },
-        { "node": "N4", "adapter": 0, "port": 1 }
+        {
+          "node": "N3",
+          "adapter": 0,
+          "port": 0
+        },
+        {
+          "node": "N4",
+          "adapter": 0,
+          "port": 0
+        }
+      ]
+    },
+    {
+      "endpoints": [
+        {
+          "node": "N5",
+          "adapter": 0,
+          "port": 0
+        },
+        {
+          "node": "N1",
+          "adapter": 0,
+          "port": 2
+        }
+      ]
+    },
+    {
+      "endpoints": [
+        {
+          "node": "N7",
+          "adapter": 0,
+          "port": 0
+        },
+        {
+          "node": "N2",
+          "adapter": 0,
+          "port": 2
+        }
+      ]
+    },
+    {
+      "endpoints": [
+        {
+          "node": "N8",
+          "adapter": 0,
+          "port": 0
+        },
+        {
+          "node": "N4",
+          "adapter": 0,
+          "port": 2
+        }
+      ]
+    },
+    {
+      "endpoints": [
+        {
+          "node": "N6",
+          "adapter": 0,
+          "port": 0
+        },
+        {
+          "node": "N3",
+          "adapter": 0,
+          "port": 2
+        }
       ]
     }
   ]

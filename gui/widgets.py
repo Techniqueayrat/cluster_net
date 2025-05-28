@@ -23,11 +23,26 @@ class MainWindow(QMainWindow):
         central = QWidget()
         layout  = QVBoxLayout(central)
 
-        layout.addWidget(QLabel("Выберите сетевую топологию:", alignment=Qt.AlignmentFlag.AlignLeft))
+        layout.addWidget(QLabel("Выберите сетевую топологию:",
+                                alignment=Qt.AlignmentFlag.AlignLeft))
 
         self.combo_topology = QComboBox()
         self.combo_topology.addItems(["torus", "fat-tree", "thin-tree"])
         layout.addWidget(self.combo_topology)
+
+        layout.addWidget(QLabel("Выберите топологию задачи:",
+                                alignment=Qt.AlignmentFlag.AlignLeft))
+
+        self.combo_task_topology = QComboBox()
+        self.combo_task_topology.addItems(["STAR", "GRID", "CUBE", "TREE"])
+        layout.addWidget(self.combo_task_topology)
+
+        layout.addWidget(QLabel("Выберите стратегию размещения:",
+                                alignment=Qt.AlignmentFlag.AlignLeft))
+
+        self.combo_strategy = QComboBox()
+        self.combo_strategy.addItems(["Simple", "Random", "Optimal", "Advanced"])
+        layout.addWidget(self.combo_strategy)
 
         self.btn_start = QPushButton("Запустить эксперимент")
         layout.addWidget(self.btn_start)
@@ -50,7 +65,9 @@ class MainWindow(QMainWindow):
     @asyncSlot()
     async def _on_start_clicked(self):
         topo = self.combo_topology.currentText()
-        await self.ctrl.run_experiment(topo)
+        task_topo = self.combo_task_topology.currentText()
+        strategy = self.combo_strategy.currentText()
+        await self.ctrl.run_experiment(topo, task_topo, strategy)
 
     def _append_log(self, html_text: str):
         self.text_log.append(html_text)

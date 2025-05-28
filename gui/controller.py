@@ -22,12 +22,19 @@ class BackendController(QObject):
         self._connect_ws(initial=True)
 
     # ---------- PUBLIC ---------- #
-    @asyncSlot(str)
-    async def run_experiment(self, topology: str):
-        self.status_msg.emit(f"Запускаем топологию «{topology}» …")
+    @asyncSlot(str, str, str)
+    async def run_experiment(self, topology: str, task_topology: str, strategy: str):
+        self.status_msg.emit(
+            f"Запускаем топологию «{topology}» (задача {task_topology}, стратегия {strategy}) …"
+        )
         try:
             r = requests.post(f"{EXPCTL_REST}/experiments/start",
-                              json={"topology": topology}, timeout=5)
+                              json={
+                                  "topology": topology,
+                                  "task_topology": task_topology,
+                                  "strategy": strategy,
+                              },
+                              timeout=5)
             r.raise_for_status()
             self._current_exp_id = r.json()["experiment_id"]
             self.status_msg.emit(f"Эксперимент #{self._current_exp_id} создан, ждём…")
