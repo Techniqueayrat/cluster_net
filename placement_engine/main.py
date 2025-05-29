@@ -32,7 +32,6 @@ class MapRequest(BaseModel):
     task_topology: str | None = None
 
 
-@app.post("/map")
 def _optimal_order(hosts: List[str], topology: str | None) -> List[str]:
     """Return hosts ordered with basic cluster topology awareness."""
     if topology in {"fat-tree", "thin-tree"}:
@@ -85,4 +84,10 @@ def make_mapping(data: MapRequest):
         "rankfile": rankfile_txt,  # для записи на диск
         "hostfile": "\n".join(hosts[:n_proc])
     }
+
+
+@app.post("/map")
+def map_endpoint(req: MapRequest):
+    """Calculate process-to-host mapping and auxiliary files."""
+    return make_mapping(req)
 

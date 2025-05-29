@@ -28,13 +28,15 @@ class BackendController(QObject):
             f"Запускаем топологию «{topology}» (задача {task_topology}, стратегия {strategy}) …"
         )
         try:
-            r = requests.post(f"{EXPCTL_REST}/experiments/start",
-                              json={
-                                  "topology": topology,
-                                  "task_topology": task_topology,
-                                  "strategy": strategy,
-                              },
-                              timeout=5)
+            r = requests.post(
+                f"{EXPCTL_REST}/experiments/start",
+                json={
+                    "topology": topology,
+                    "task_topology": task_topology,
+                    "strategy": strategy,
+                },
+                timeout=30,
+            )
             r.raise_for_status()
             self._current_exp_id = r.json()["experiment_id"]
             self.status_msg.emit(f"Эксперимент #{self._current_exp_id} создан, ждём…")
@@ -54,8 +56,10 @@ class BackendController(QObject):
         self.status_msg.emit(text)
         if "завершён" in text and self._current_exp_id is not None:
             try:
-                r = requests.get(f"{EXPCTL_REST}/experiments/{self._current_exp_id}/result",
-                                 timeout=5)
+                r = requests.get(
+                    f"{EXPCTL_REST}/experiments/{self._current_exp_id}/result",
+                    timeout=30,
+                )
                 self.experiment_done.emit(self._current_exp_id, r.json())
             except Exception as e:
                 self.status_msg.emit(f"<font color='red'>Ошибка результата: {e}</font>")

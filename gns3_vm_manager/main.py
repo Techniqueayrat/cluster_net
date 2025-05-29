@@ -25,7 +25,7 @@ def _set_ip_via_telnet(console_host: str, console_port: int,
 
         # login: root / 0000
         send("")            # wake up console
-        time.sleep(10)
+        time.sleep(3)
         s.recv(1024)
         send("root")
         time.sleep(0.3)
@@ -33,9 +33,10 @@ def _set_ip_via_telnet(console_host: str, console_port: int,
         send("0000")
         time.sleep(0.3)
         s.recv(1024)
-
         send(f"ip link set {iface} up")
         send(f"ip addr add {ip_cidr} dev {iface}")
+        # send("ssh-keygen -A")        # создаёт /etc/ssh/ssh_host_*,
+        send("systemctl enable --now sshd")
         send("exit")
 
 
@@ -273,6 +274,49 @@ def _create_links(
         print(f"Created link {endpoints[0]} <-> {endpoints[1]}")
 
 
+def _normalize_topology(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Return topology description in the simplified internal format."""
+    if "topology" not in config:
+        return config
+
+    topo = config.get("topology", {})
+
+    nodes: List[Dict[str, Any]] = []
+    for n in topo.get("nodes", []):
+        n_type = n.get("node_type") or n.get("type")
+        entry = {
+            "id": n.get("node_id") or n.get("name"),
+            "name": n.get("name"),
+            "type": n_type,
+            "x": n.get("x", 0),
+            "y": n.get("y", 0),
+        }
+        if n_type == "qemu":
+            props = n.get("properties", {})
+            entry["image"] = props.get("hda_disk_image") or n.get("image", "")
+            entry["ram"] = props.get("ram", n.get("ram", 512))
+            if props.get("platform"):
+                entry["platform"] = props.get("platform")
+
+        nodes.append(entry)
+
+    links: List[Dict[str, Any]] = []
+    for link in topo.get("links", []):
+        eps = []
+        for ep in link.get("nodes", []):
+            eps.append(
+                {
+                    "node": ep.get("node_id"),
+                    "adapter": ep.get("adapter_number", 0),
+                    "port": ep.get("port_number", 0),
+                }
+            )
+        if eps:
+            links.append({"endpoints": eps})
+
+    return {"nodes": nodes, "links": links}
+
+
 # --------------------------------------------------------------------------------------
 # API endpoint
 # --------------------------------------------------------------------------------------
@@ -306,7 +350,7 @@ def start_topology(payload: dict):
     if cfg_resp.status_code != 200:
         return {"error": "Topology configuration not found", "topology": topology_name}
 
-    config = cfg_resp.json()
+    config = _normalize_topology(cfg_resp.json())
 
     project_name = f"project_{topology_name}"
 
@@ -400,8 +444,10 @@ def start_topology(payload: dict):
         f"{GNS3_SERVER_URL}/v3/projects/{project_id}/nodes", headers=headers
     ).json()
 
-    # sequential IP assignment
-    for idx, node in enumerate(nodes_status, start=1):
+    # sequential IP assignment only for QEMU nodes --------------------
+    qemu_nodes = [n for n in nodes_status if n.get("node_type") == "qemu"]
+    time.sleep(30)
+    for idx, node in enumerate(qemu_nodes, start=1):
         ip = f"{IP_BASE}{idx}"
         cidr = f"{ip}/24"
         try:

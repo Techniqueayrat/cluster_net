@@ -59,6 +59,9 @@ def push_openmpi_files_all(hosts: Sequence[str], rankfile: str, hostfile: str):
     return rf_remote, hf_remote
 
 def run_mpi(master_ip: str, np: int, rf: str):
-    cmd = f"mpirun -np {np} --rankfile {rf} /usr/bin/mpi_hello"
+    """Запускает mpirun на master‑хосте, отключая проверку SSH‑ключей."""
+    ssh_opts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    mca = f"OMPI_MCA_plm_rsh_agent='ssh {ssh_opts}'"
+    cmd = f"{mca} mpirun -np {np} --rankfile {rf} /usr/bin/mpi_hello"
     out, err = exec_ssh(master_ip, cmd)
     return out, err
